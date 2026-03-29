@@ -1,0 +1,300 @@
+-- =========================================================
+-- DATABASE CREATION
+-- =========================================================
+CREATE DATABASE IF NOT EXISTS al_falah_db 
+CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE al_falah_db;
+
+-- =========================================================
+-- SETTINGS TABLES
+-- =========================================================
+
+CREATE TABLE IF NOT EXISTS batch_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS grade_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS gsd_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS occupation_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS edu_qualification_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS income_source_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS teacher_service_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) UNIQUE NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS teacher_subject_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) UNIQUE NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS teacher_edu_qualification_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) UNIQUE NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS teacher_professional_qualification_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) UNIQUE NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS teacher_grade_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) UNIQUE NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS teacher_designation_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) UNIQUE NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS teacher_first_school_options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) UNIQUE NOT NULL
+) ENGINE=InnoDB;
+
+-- =========================================================
+-- USERS TABLE
+-- =========================================================
+CREATE TABLE IF NOT EXISTS users (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('admin','teacher','staff') DEFAULT 'staff',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- =========================================================
+-- STUDENTS TABLE
+-- =========================================================
+CREATE TABLE IF NOT EXISTS students (
+    student_id        INT PRIMARY KEY AUTO_INCREMENT,
+    serial_no         VARCHAR(100) UNIQUE,
+    full_name         VARCHAR(255) NOT NULL,
+    grade             VARCHAR(50)  NOT NULL,
+    index_no          VARCHAR(100) UNIQUE NOT NULL,
+    permanent_address TEXT,
+    grama_sevaka_division VARCHAR(255),
+    date_of_batch     DATE,
+    gender            ENUM('Male','Female'),
+    permanent_disease TINYINT(1) DEFAULT 0,
+    eligible_aswesuma TINYINT(1) DEFAULT 0,
+    permanent_disease_note TEXT,
+    year_of_joining   INT NOT NULL,
+    batch_id          INT,
+    is_alumni         TINYINT(1) NOT NULL DEFAULT 0,
+    ff_fee_paid       TINYINT(1) NOT NULL DEFAULT 0,
+    sdec_fee_paid     TINYINT(1) NOT NULL DEFAULT 0,
+    ff_fee_year       INT NOT NULL DEFAULT 2026,
+    sdec_fee_year     INT NOT NULL DEFAULT 2026,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (batch_id) REFERENCES batch_options(id) ON DELETE SET NULL,
+
+    INDEX (serial_no),
+    INDEX (index_no),
+    INDEX (grade),
+    INDEX (batch_id)
+) ENGINE=InnoDB;
+
+-- =========================================================
+-- FATHERS
+-- =========================================================
+CREATE TABLE IF NOT EXISTS fathers (
+    father_id      INT PRIMARY KEY AUTO_INCREMENT,
+    student_id     INT UNIQUE NOT NULL,
+    name           VARCHAR(255),
+    nic_no         VARCHAR(50),
+    mobile_no      VARCHAR(20),
+    whatsapp_no    VARCHAR(20),
+    status         ENUM('YES','NO','Divorced','Permanent disease'),
+    income_sources TEXT,
+    job            VARCHAR(255),
+    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================================
+-- MOTHERS
+-- =========================================================
+CREATE TABLE IF NOT EXISTS mothers (
+    mother_id      INT PRIMARY KEY AUTO_INCREMENT,
+    student_id     INT UNIQUE NOT NULL,
+    name           VARCHAR(255),
+    nic_no         VARCHAR(50),
+    mobile_no      VARCHAR(20),
+    whatsapp_no    VARCHAR(20),
+    single_mother  TINYINT(1) DEFAULT 0,
+    status         ENUM('YES','NO','Divorced','Permanent disease'),
+    income_sources TEXT,
+    job            VARCHAR(255),
+    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================================
+-- SIBLINGS
+-- =========================================================
+CREATE TABLE IF NOT EXISTS siblings (
+    sibling_id                INT PRIMARY KEY AUTO_INCREMENT,
+    student_id                INT NOT NULL,
+    full_name                 VARCHAR(255),
+    school                    VARCHAR(255),
+    educational_qualification TEXT,
+    nic_no                    VARCHAR(50),
+    job                       VARCHAR(255),
+    physically_disable        TINYINT(1) DEFAULT 0,
+    created_at                TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at                TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================================
+-- GUARDIANS
+-- =========================================================
+CREATE TABLE IF NOT EXISTS guardians (
+    guardian_id  INT PRIMARY KEY AUTO_INCREMENT,
+    student_id   INT UNIQUE NOT NULL,
+    full_name    VARCHAR(255),
+    nic_no       VARCHAR(50),
+    mobile_no    VARCHAR(20),
+    whatsapp_no  VARCHAR(20),
+    job          VARCHAR(255),
+    status       ENUM('YES','NO','Divorced','Permanent disease'),
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================================
+-- TEACHERS
+-- =========================================================
+CREATE TABLE IF NOT EXISTS teachers (
+    teacher_id                   INT PRIMARY KEY AUTO_INCREMENT,
+    full_name                    VARCHAR(255) NOT NULL,
+    name_with_initial            VARCHAR(255),
+    nic_no                       VARCHAR(50) UNIQUE,
+    employee_number              VARCHAR(100),
+    wop_number                   VARCHAR(100),
+    teacher_service_class        VARCHAR(100),
+    first_appointment_date       DATE,
+    first_appointed_school       VARCHAR(255),
+    official_language            ENUM('Tamil','Sinhala','English'),
+    subject_of_appointment       VARCHAR(100),
+    salary_scale                 VARCHAR(100),
+    salary_roll_number           VARCHAR(100),
+    permanent_address            TEXT,
+    temporary_address            TEXT,
+    mobile_no                    VARCHAR(20),
+    whatsapp_number              VARCHAR(20),
+    email_address                VARCHAR(255) UNIQUE,
+    education_qualification      TEXT,
+    grade                        VARCHAR(50),
+    gender                       ENUM('Male','Female'),
+    married                      ENUM('Yes','No') DEFAULT 'No',
+    divorced                     TINYINT(1) DEFAULT 0,
+    widow                        TINYINT(1) DEFAULT 0,
+    designation                  VARCHAR(100),
+    professional_qualification   TEXT,
+    other_courses_of_study       TEXT,
+    other_qualifications         TEXT,
+    increment_date               DATE,
+    module_completed             TINYINT(1) DEFAULT 0,
+    module_completed_date        DATE,
+    passport_no                  VARCHAR(50),
+    passport_expiry_date         DATE,
+    license_no                   VARCHAR(100),
+    license_expiry_date          DATE,
+    admission_date_at_al_falah   DATE,
+    created_at                   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at                   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- =========================================================
+-- TEACHER SPOUSE
+-- =========================================================
+CREATE TABLE IF NOT EXISTS teacher_spouse (
+    spouse_id    INT PRIMARY KEY AUTO_INCREMENT,
+    teacher_id   INT NOT NULL,
+    name         VARCHAR(255),
+    job          VARCHAR(255),
+    phone_number VARCHAR(20),
+    address      TEXT,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (teacher_id) REFERENCES teachers(teacher_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================================
+-- TEACHER CHILDREN
+-- =========================================================
+CREATE TABLE IF NOT EXISTS teacher_children (
+    child_id   INT PRIMARY KEY AUTO_INCREMENT,
+    teacher_id INT NOT NULL,
+    name       VARCHAR(255),
+    age        INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (teacher_id) REFERENCES teachers(teacher_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- =========================================================
+-- USER AUDIT LOG
+-- =========================================================
+CREATE TABLE IF NOT EXISTS user_audit_log (
+    audit_id     INT PRIMARY KEY AUTO_INCREMENT,
+    user_id      INT NOT NULL,
+    action       VARCHAR(100) NOT NULL,
+    target_table VARCHAR(100) DEFAULT NULL,
+    target_id    INT          DEFAULT NULL,
+    old_value    JSON         DEFAULT NULL,
+    new_value    JSON         DEFAULT NULL,
+    ip_address   VARCHAR(45)  DEFAULT NULL,
+    user_agent   VARCHAR(255) DEFAULT NULL,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+
+    INDEX idx_audit_user   (user_id),
+    INDEX idx_audit_table  (target_table, target_id),
+    INDEX idx_audit_action (action),
+    INDEX idx_audit_date   (created_at)
+) ENGINE=InnoDB;
